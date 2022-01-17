@@ -32,7 +32,7 @@ def pca_process(X_train, Y_train, X_test, dimension):
     X_test_trans = pca.transform(X_test)
     return X_train_trans, X_test_trans
 
-# 將資料做FLT(LDA)轉換矩陣
+# 將資料做FLD(LDA)轉換矩陣
 def lda_process(X_train, X_test, Y_train):
     lda = LDA()
     X_train_trans = lda.fit_transform(X_train, Y_train)
@@ -44,12 +44,11 @@ def rfc_model(dimension, X_train, X_test, Y_train, Y_test):
     model = RandomForestClassifier()
     model.fit(X_train, Y_train)
     pred = model.predict(X_test)
-    print('dimension %d: RandomForestClassfier: %.2f%%' % (dimension, (pred == np.array(Y_test)).mean() * 100))
-    return Y_test.tolist(), pred
+    return pred
 
 # 將混淆矩陣以pyplot顯示出來
 def show_matrix_in_plot(name, dimension, con_mat):
-    plt.imshow(con_mat, interpolation='nearest', cmap=plt.cm.gray)
+    plt.imshow(con_mat, interpolation='nearest', cmap=plt.cm.autumn)
     plt.title('{} Dimension {} Confusion matrix'.format(name, dimension))
     plt.colorbar()
     tick_marks = np.arange(4)
@@ -64,18 +63,19 @@ def main(dimension):
     # 只做PCA的部分
     X_train, Y_train, X_test, Y_test = loadDataset()
     X_train_trans, X_test_trans = pca_process(X_train, Y_train, X_test, dimension)
-    answer, predict = rfc_model(dimension, X_train_trans, X_test_trans, Y_train, Y_test)
-    con_mat = confusion_matrix(predict, answer)
+    predict = rfc_model(dimension, X_train_trans, X_test_trans, Y_train, Y_test)
+    print('PCA Dimension '+str(dimension)+': Accuracy: '+str((predict == np.array(Y_test)).mean() * 100))
+    con_mat = confusion_matrix(predict, list(Y_test))
     show_matrix_in_plot('PCA', dimension, con_mat)
     
-    # 做PCA+FLT的部分
+    # 做PCA+FLD的部分
     X_train, Y_train, X_test, Y_test = loadDataset()
     X_train_trans, X_test_trans = pca_process(X_train, Y_train, X_test, dimension)
     X_train_trans, X_test_trans = lda_process(X_train_trans, X_test_trans, Y_train)
-    answer, predict = rfc_model(dimension, X_train_trans, X_test_trans, Y_train, Y_test)
-
-    con_mat = confusion_matrix(predict, answer)
-    show_matrix_in_plot('PCA+FLT(LDA)', dimension, con_mat)
+    predict = rfc_model(dimension, X_train_trans, X_test_trans, Y_train, Y_test)
+    print('LDA+PCA Dimension '+str(dimension)+': Accuracy: '+str((predict == np.array(Y_test)).mean() * 100))
+    con_mat = confusion_matrix(predict, list(Y_test))
+    show_matrix_in_plot('PCA+FLD(LDA)', dimension, con_mat)
     
 main(10)
 main(20)
