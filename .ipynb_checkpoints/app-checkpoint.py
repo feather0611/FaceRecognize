@@ -57,6 +57,7 @@ def show_matrix_in_plot(name, dimension, con_mat):
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
     plt.savefig(name+'_'+str(dimension)+'.png')
+    plt.show()
     
 def main(dimension):
     # 只做PCA的部分
